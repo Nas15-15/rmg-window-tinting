@@ -1,0 +1,276 @@
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: var(--nav-height) 40px 60px;
+  overflow: hidden;
+}
+
+.backgroundContainer {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 0;
+}
+
+.backgroundImage {
+  object-fit: cover;
+  object-position: center;
+}
+
+.gradientOverlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(
+    90deg, 
+    rgba(10, 10, 10, 0.95) 0%, 
+    rgba(10, 10, 10, 0.8) 40%, 
+    rgba(10, 10, 10, 0.3) 100%
+  );
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 4rem;
+}
+
+.textContent {
+  max-width: 650px;
+}
+
+.trustBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-full);
+  margin-bottom: 2rem;
+  backdrop-filter: blur(8px);
+}
+
+.starIcon {
+  color: #FBBF24; /* Gold */
+  font-size: 0.9rem;
+}
+
+.trustText {
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  margin-left: 4px;
+}
+
+.title {
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  line-height: 1.05;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.02em;
+  color: #FFFFFF;
+}
+
+.highlight {
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+  background-image: linear-gradient(90deg, #FFFFFF, var(--text-muted));
+  font-style: italic;
+  font-weight: 700;
+}
+
+.subtitle {
+  font-size: clamp(1.1rem, 2vw, 1.3rem);
+  color: var(--text-muted);
+  max-width: 550px;
+  margin-bottom: 3rem;
+  line-height: 1.6;
+}
+
+.actions {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 18px 40px;
+  background: #FFFFFF;
+  color: #000000;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.primaryBtn:hover {
+  transform: translateY(-2px);
+  background: #F3F4F6;
+  box-shadow: 0 10px 25px -5px rgba(255, 255, 255, 0.15);
+}
+
+.secondaryBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 40px;
+  background: transparent;
+  color: #FFFFFF;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.secondaryBtn:hover {
+  transform: translateY(-2px);
+  border-color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.btnIcon {
+  transition: transform 0.3s ease;
+}
+
+.primaryBtn:hover .btnIcon {
+  transform: translateX(4px);
+}
+
+/* Social Proof Card */
+.socialProofCard {
+  background: rgba(15, 15, 15, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 32px;
+  border-radius: 24px;
+  max-width: 400px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  transform: translateY(20px);
+}
+
+.proofHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.avatarPlaceholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #374151 0%, #111827 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.avatarInitials {
+  color: #FFFFFF;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.proofMeta {
+  flex: 1;
+}
+
+.proofName {
+  display: block;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin-bottom: 4px;
+  font-size: 1.1rem;
+}
+
+.proofStars {
+  display: flex;
+  gap: 2px;
+}
+
+.star {
+  color: #FBBF24;
+  font-size: 1rem;
+}
+
+.googleIcon {
+  background: #FFFFFF;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.proofQuote {
+  color: #E5E7EB;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  font-style: italic;
+  margin-bottom: 20px;
+}
+
+.proofService {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+@media (max-width: 1024px) {
+  .content {
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .textContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .gradientOverlay {
+    background: linear-gradient(
+      180deg, 
+      rgba(10, 10, 10, 0.7) 0%, 
+      rgba(10, 10, 10, 0.95) 100%
+    );
+  }
+
+  .socialProofCard {
+    transform: none;
+    margin-top: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: var(--nav-height) 20px 40px;
+  }
+
+  .title {
+    font-size: clamp(2rem, 8vw, 2.5rem);
+  }
+}
