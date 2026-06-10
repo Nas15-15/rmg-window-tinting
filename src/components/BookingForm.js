@@ -6,7 +6,7 @@ import { getPricingCategory, ADDONS, WINDOW_PRICES, getCustomPrice, PRICING_TIER
 import CarWindowSelector from './CarWindowSelector';
 
 const paypalOptions = {
-  clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "test",
+  clientId: (process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "test").trim(),
   currency: "USD",
   intent: "capture"
 };
