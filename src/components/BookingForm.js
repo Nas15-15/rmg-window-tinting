@@ -362,6 +362,57 @@ export default function BookingForm() {
                   <span>Estimated Total:</span>
                   <span className={styles.totalPrice}>${totalPrice}</span>
                 </div>
+
+                {status === 'error' && <div className={styles.errorAlert}>{errorMessage}</div>}
+                
+                {serviceType === 'INSTALL' ? (
+                  <div className={styles.submitWrapper}>
+                    <button 
+                      type="submit" 
+                      className={styles.submitBtn} 
+                      disabled={status === 'loading' || !model || (selectedServices.includes('TINT') && selectedWindows.length === 0)}
+                    >
+                      {status === 'loading' ? 'Processing...' : 'Request Booking'}
+                    </button>
+                    <p className={styles.disclaimer}>No payment required to book. You pay when the work is done.</p>
+                  </div>
+                ) : (
+                  <div className={styles.submitWrapper}>
+                    {isFormValid ? (
+                      <div className={styles.paypalContainer}>
+                        <PayPalButtons 
+                          style={{ layout: "vertical" }}
+                          createOrder={(data, actions) => {
+                            return actions.order.create({
+                              purchase_units: [{
+                                amount: {
+                                  value: totalPrice.toString()
+                                },
+                                description: `DIY Pre-Cut Tint Kit (${selectedWindows.length} pieces) - ${year} ${make} ${model}`
+                              }]
+                            });
+                          }}
+                          onApprove={(data, actions) => {
+                            return actions.order.capture().then((details) => {
+                              submitOrder({
+                                serviceType,
+                                firstName, lastName, phone, email,
+                                year, make, model,
+                                selectedWindows,
+                                totalPrice,
+                                paypalTransactionId: details.id,
+                                shippingAddress: details.purchase_units[0].shipping?.address
+                              });
+                            });
+                          }}
+                        />
+                        <p className={styles.paypalNote}>Secure checkout powered by PayPal. We&apos;ll ship your kit within 2 business days.</p>
+                      </div>
+                    ) : (
+                      <p className={styles.disclaimer} style={{ color: 'var(--accent)' }}>Please fill out all required fields to proceed with payment.</p>
+                    )}
+                  </div>
+                )}
               </div>
 
             <div className={styles.formSection}>
@@ -389,57 +440,6 @@ export default function BookingForm() {
               </div>
             </div>
           </div>
-
-          {status === 'error' && <div className={styles.errorAlert}>{errorMessage}</div>}
-          
-          {serviceType === 'INSTALL' ? (
-            <div className={styles.submitWrapper}>
-              <button 
-                type="submit" 
-                className={styles.submitBtn} 
-                disabled={status === 'loading' || !model || (selectedServices.includes('TINT') && selectedWindows.length === 0)}
-              >
-                {status === 'loading' ? 'Processing...' : 'Request Booking'}
-              </button>
-              <p className={styles.disclaimer}>No payment required to book. You pay when the work is done.</p>
-            </div>
-          ) : (
-            <div className={styles.submitWrapper}>
-              {isFormValid ? (
-                <div className={styles.paypalContainer}>
-                  <PayPalButtons 
-                    style={{ layout: "vertical" }}
-                    createOrder={(data, actions) => {
-                      return actions.order.create({
-                        purchase_units: [{
-                          amount: {
-                            value: totalPrice.toString()
-                          },
-                          description: `DIY Pre-Cut Tint Kit (${selectedWindows.length} pieces) - ${year} ${make} ${model}`
-                        }]
-                      });
-                    }}
-                    onApprove={(data, actions) => {
-                      return actions.order.capture().then((details) => {
-                        submitOrder({
-                          serviceType,
-                          firstName, lastName, phone, email,
-                          year, make, model,
-                          selectedWindows,
-                          totalPrice,
-                          paypalTransactionId: details.id,
-                          shippingAddress: details.purchase_units[0].shipping?.address
-                        });
-                      });
-                    }}
-                  />
-                  <p className={styles.paypalNote}>Secure checkout powered by PayPal. We&apos;ll ship your kit within 2 business days.</p>
-                </div>
-              ) : (
-                <p className={styles.disclaimer} style={{ color: 'var(--accent)' }}>Please fill out all required fields above to proceed with payment.</p>
-              )}
-            </div>
-          )}
         </form>
       </div>
     </section>
