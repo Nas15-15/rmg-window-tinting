@@ -2,23 +2,24 @@
 import { useState, useEffect } from 'react';
 import Script from 'next/script';
 import styles from './BookingForm.module.css';
-import { getPricingCategory, ADDONS, DIY_KIT } from '../utils/pricing';
+import { getPricingCategory, ADDONS, WINDOW_PRICES, getCustomPrice, PRICING_TIERS } from '../utils/pricing';
+import CarWindowSelector from './CarWindowSelector';
 
 export default function BookingForm() {
   const [serviceType, setServiceType] = useState('INSTALL'); // 'INSTALL' or 'DIY'
-  const [windowCount, setWindowCount] = useState(DIY_KIT.minWindows);
+  const [selectedServices, setSelectedServices] = useState(['TINT']); // 'TINT', 'LED'
+  const [selectedWindows, setSelectedWindows] = useState([]);
 
   const [year, setYear] = useState('');
   const [make, setMake] = useState('');
   const [model, setModel] = useState('');
+  const [bodyStyleOverride, setBodyStyleOverride] = useState('');
   
   const [makes, setMakes] = useState([]);
   const [models, setModels] = useState([]);
   
   const [loadingMakes, setLoadingMakes] = useState(false);
   const [loadingModels, setLoadingModels] = useState(false);
-  
-  const [selectedServices, setSelectedServices] = useState(['WINDOW_TINT']);
   
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -51,83 +52,95 @@ export default function BookingForm() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  // Initial makes load (NHTSA)
+  useEffect(() => {
+    setLoadingMakes(true);
+    fetch('/api/carmakes')
+      .then(res => res.json())
+      .then(data => setMakes(data || []))
+      .catch(err => console.error(err))
+      .finally(() => setLoadingMakes(false));
+  }, []);
+
   const handleYearChange = (val) => {
     setYear(val);
     if (!val || val.length !== 4) {
-      setMakes([]);
-      setMake('');
       setModels([]);
       setModel('');
-    } else {
-      setLoadingMakes(true);
     }
   };
 
   const handleMakeChange = (val) => {
     setMake(val);
-    if (!val) {
+    if (!val || !year || year.length !== 4) {
       setModels([]);
       setModel('');
-    } else {
-      setLoadingModels(true);
+      setBodyStyleOverride('');
     }
   };
 
-  // Fetch makes when year changes
-  useEffect(() => {
-    if (!year || year.length !== 4) {
-      return;
-    }
-    
-    fetch(`/api/carmakes?year=${year}`)
-      .then(res => res.json())
-      .then(data => {
-        setMakes(data || []);
-        setMake('');
-        setModel('');
-      })
-      .catch(err => console.error(err))
-      .finally(() => setLoadingMakes(false));
-  }, [year]);
+  const handleModelChange = (val) => {
+    setModel(val);
+    setBodyStyleOverride(''); // reset override when model changes
+  };
 
-  // Fetch models when make changes
+  // Fetch models when make/year changes
   useEffect(() => {
     if (!make || !year || year.length !== 4) {
       return;
     }
     
-    fetch(`/api/carmodels?make=${make}&year=${year}`)
+    setLoadingModels(true);
+    fetch(`/api/carmodels?make=${encodeURIComponent(make)}&year=${year}`)
       .then(res => res.json())
       .then(data => {
         setModels(data || []);
         setModel('');
+        setBodyStyleOverride('');
       })
       .catch(err => console.error(err))
       .finally(() => setLoadingModels(false));
   }, [make, year]);
 
-  const pricingCategory = getPricingCategory(make, model);
+  let pricingCategory = getPricingCategory(make, model);
+  if (bodyStyleOverride) {
+    pricingCategory = PRICING_TIERS[bodyStyleOverride];
+  }
   
+  const handleToggleWindow = (winId) => {
+    setSelectedWindows(prev => 
+      prev.includes(winId) ? prev.filter(id => id !== winId) : [...prev, winId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    setSelectedWindows(['WINDSHIELD', 'SUN_STRIP', 'FRONT_LEFT', 'FRONT_RIGHT', 'REAR_LEFT', 'REAR_RIGHT', 'REAR_WINDSHIELD']);
+  };
+
+  const handleClearSelection = () => {
+    setSelectedWindows([]);
+  };
+
+  let tintPrice = getCustomPrice(selectedWindows, pricingCategory.label);
+
   let totalPrice = 0;
-  if (serviceType === 'INSTALL') {
-    if (selectedServices.includes('WINDOW_TINT')) {
-      totalPrice += model ? pricingCategory.basePrice : 0;
-    }
-    if (selectedServices.includes('LED_HEADLIGHTS')) {
-      totalPrice += ADDONS.LED_HEADLIGHTS.price;
-    }
-  } else {
-    totalPrice = windowCount * DIY_KIT.pricePerWindow;
+  if (selectedServices.includes('TINT')) {
+    totalPrice += tintPrice;
+  }
+  if (serviceType === 'INSTALL' && selectedServices.includes('LED')) {
+    totalPrice += ADDONS.LED_HEADLIGHTS.price;
   }
 
-  const toggleService = (service) => {
-    if (selectedServices.includes(service)) {
-      if (selectedServices.length > 1) {
-        setSelectedServices(selectedServices.filter(s => s !== service));
+  const toggleService = (svc) => {
+    setSelectedServices(prev => {
+      if (prev.includes(svc)) {
+        // Prevent deselecting both
+        if (prev.length === 1) return prev;
+        return prev.filter(s => s !== svc);
+      } else {
+        return [...prev, svc];
       }
-    } else {
-      setSelectedServices([...selectedServices, service]);
-    }
+    });
   };
 
   const submitOrder = async (orderData) => {
@@ -161,6 +174,7 @@ export default function BookingForm() {
       firstName, lastName, phone, email,
       year, make, model,
       selectedServices,
+      selectedWindows,
       totalPrice
     });
   };
@@ -213,36 +227,14 @@ export default function BookingForm() {
 
           <div className={`${styles.formGrid} ${styles.fadeSwap}`} key={serviceType}>
             <div className={styles.formSection}>
-              <h3 className={styles.sectionTitle}>1. Service & Vehicle Details</h3>
-              
-              {serviceType === 'INSTALL' && (
-                <div className={styles.inputGroup} style={{ marginBottom: '2rem' }}>
-                  <label>What services do you need?</label>
-                  <div className={styles.checkboxGroup}>
-                    <label className={styles.checkboxLabel}>
-                      <input 
-                        type="checkbox" 
-                        checked={selectedServices.includes('WINDOW_TINT')} 
-                        onChange={() => toggleService('WINDOW_TINT')} 
-                      /> Window Tint
-                    </label>
-                    <label className={styles.checkboxLabel}>
-                      <input 
-                        type="checkbox" 
-                        checked={selectedServices.includes('LED_HEADLIGHTS')} 
-                        onChange={() => toggleService('LED_HEADLIGHTS')} 
-                      /> LED Headlight Upgrade
-                    </label>
-                  </div>
-                </div>
-              )}
+              <h3 className={styles.sectionTitle}>1. Vehicle Details</h3>
 
               <div className={styles.inputGroup}>
                 <label>Year</label>
                 <input 
                   type="number" 
                   min="1990" 
-                  max={new Date().getFullYear()} 
+                  max={new Date().getFullYear() + 1} 
                   value={year} 
                   onChange={(e) => handleYearChange(e.target.value)} 
                   placeholder="e.g. 2023"
@@ -271,77 +263,88 @@ export default function BookingForm() {
                 <label>Model</label>
                 <select 
                   value={model} 
-                  onChange={(e) => setModel(e.target.value)}
-                  disabled={models.length === 0 || loadingModels}
+                  onChange={(e) => handleModelChange(e.target.value)}
+                  disabled={!year || !make || loadingModels}
                   required
                   className={styles.input}
                 >
-                  <option value="">{loadingModels ? 'Loading models...' : 'Select Model'}</option>
+                  <option value="">
+                    {!year || !make ? 'Select Year & Make first' 
+                      : loadingModels ? 'Loading models...' 
+                      : models.length === 0 ? 'No models found' : 'Select Model'}
+                  </option>
                   {models.map(m => (
                     <option key={m.model} value={m.model}>{m.model}</option>
                   ))}
                 </select>
               </div>
-            </div>
 
-            <div className={styles.formSection}>
-              <h3 className={styles.sectionTitle}>{serviceType === 'INSTALL' ? '2. Options & Add-ons' : '2. Kit Details'}</h3>
-              
-              {serviceType === 'INSTALL' ? (
-                <p className={styles.disclaimer}>No additional options available for the selected services yet.</p>
-              ) : (
+              {model && (
                 <div className={styles.inputGroup}>
-                  <label>Number of Windows</label>
+                  <label>Body Style (Optional override)</label>
                   <select 
-                    value={windowCount} 
-                    onChange={(e) => setWindowCount(Number(e.target.value))}
+                    value={bodyStyleOverride} 
+                    onChange={(e) => setBodyStyleOverride(e.target.value)}
                     className={styles.input}
                   >
-                    {[...Array(7)].map((_, i) => {
-                      const count = i + 2;
-                      return (
-                        <option key={count} value={count}>
-                          {count} Windows — ${count * DIY_KIT.pricePerWindow}
-                        </option>
-                      );
-                    })}
+                    <option value="">Auto-detected ({pricingCategory.label})</option>
+                    <option value="SEDAN">Sedan / Coupe</option>
+                    <option value="SUV">Small SUV / Crossover</option>
+                    <option value="XL">Truck / Large SUV</option>
                   </select>
-                  <span className={styles.helperText}>Custom laser-cut film for your vehicle&apos;s exact glass specs</span>
-                  
-                  <div className={styles.shippingBadge}>
-                    ✓ FREE UPS Ground Shipping
-                  </div>
                 </div>
               )}
+            </div>
+
+            {serviceType === 'INSTALL' && (
+              <div className={styles.formSection}>
+                <h3 className={styles.sectionTitle}>2. Services Required</h3>
+                <div className={styles.windowOptionsGrid}>
+                  <div 
+                    className={`${styles.windowCard} ${selectedServices.includes('TINT') ? styles.windowCardActive : ''}`}
+                    onClick={() => toggleService('TINT')}
+                  >
+                    <div className={styles.windowCardTitle}>Window Tinting</div>
+                    <div className={styles.windowCardPrice}>Price varies by window</div>
+                  </div>
+                  <div 
+                    className={`${styles.windowCard} ${selectedServices.includes('LED') ? styles.windowCardActive : ''}`}
+                    onClick={() => toggleService('LED')}
+                  >
+                    <div className={styles.windowCardTitle}>LED Headlights</div>
+                    <div className={styles.windowCardPrice}>+${ADDONS.LED_HEADLIGHTS.price}</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {selectedServices.includes('TINT') && (
+              <div className={styles.formSection}>
+                <h3 className={styles.sectionTitle}>{serviceType === 'INSTALL' ? '3' : '2'}. Window Coverage</h3>
+                
+                <CarWindowSelector 
+                  vehicleTier={pricingCategory.label === "Truck / Large SUV" ? "XL" : pricingCategory.label === "Small SUV / Crossover" ? "SUV" : "SEDAN"}
+                  selectedWindows={selectedWindows}
+                  onToggleWindow={handleToggleWindow}
+                  onSelectAll={handleSelectAll}
+                  onClear={handleClearSelection}
+                />
+              </div>
+            )}
               
-              <div className={styles.summaryBox}>
-                {selectedServices.includes('WINDOW_TINT') && serviceType === 'INSTALL' && (
-                  <div className={styles.summaryRow}>
-                    <span>Vehicle Class:</span>
-                    <span>{model ? pricingCategory.label : '-'}</span>
-                  </div>
-                )}
-                {serviceType === 'INSTALL' ? (
-                  <>
-                    {selectedServices.includes('WINDOW_TINT') && (
-                      <div className={styles.summaryRow}>
-                        <span>Tint Base Price:</span>
-                        <span>{model ? `$${pricingCategory.basePrice}` : '-'}</span>
-                      </div>
-                    )}
-                    {selectedServices.includes('LED_HEADLIGHTS') && (
-                      <div className={styles.summaryRow}>
-                        <span>LED Headlights:</span>
-                        <span>${ADDONS.LED_HEADLIGHTS.price}</span>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className={styles.summaryRow}>
-                    <span>Windows:</span>
-                    <span>{windowCount}</span>
-                  </div>
-                )}
+            <div className={styles.summaryBox}>
+              {selectedServices.includes('TINT') && (
+                <div className={styles.summaryRow}>
+                  <span>Window Coverage:</span>
+                  <span>{selectedWindows.length} sections selected</span>
+                </div>
+              )}
+              {serviceType === 'INSTALL' && selectedServices.includes('LED') && (
+                <div className={styles.summaryRow}>
+                  <span>LED Headlights:</span>
+                  <span>${ADDONS.LED_HEADLIGHTS.price}</span>
+                </div>
+              )}
                 {serviceType === 'DIY' && (
                   <div className={styles.summaryRow}>
                     <span>Shipping:</span>
@@ -353,10 +356,9 @@ export default function BookingForm() {
                   <span className={styles.totalPrice}>${totalPrice}</span>
                 </div>
               </div>
-            </div>
 
             <div className={styles.formSection}>
-              <h3 className={styles.sectionTitle}>3. Contact Info</h3>
+              <h3 className={styles.sectionTitle}>{serviceType === 'INSTALL' ? '4' : '3'}. Contact Info</h3>
               
               <div className={styles.row}>
                 <div className={styles.inputGroup}>
@@ -388,7 +390,7 @@ export default function BookingForm() {
               <button 
                 type="submit" 
                 className={styles.submitBtn} 
-                disabled={status === 'loading' || !model}
+                disabled={status === 'loading' || !model || (selectedServices.includes('TINT') && selectedWindows.length === 0)}
               >
                 {status === 'loading' ? 'Processing...' : 'Request Booking'}
               </button>
@@ -410,18 +412,17 @@ export default function BookingForm() {
                                 amount: {
                                   value: totalPrice.toString()
                                 },
-                                description: `DIY Pre-Cut Tint Kit (${windowCount} Windows) - ${year} ${make} ${model}`
+                                description: `DIY Pre-Cut Tint Kit (${selectedWindows.length} pieces) - ${year} ${make} ${model}`
                               }]
                             });
                           },
                           onApprove: (data, actions) => {
                             return actions.order.capture().then((details) => {
-                              // We got the payment and shipping info!
                               submitOrder({
                                 serviceType,
                                 firstName, lastName, phone, email,
                                 year, make, model,
-                                windowCount,
+                                selectedWindows,
                                 totalPrice,
                                 paypalTransactionId: details.id,
                                 shippingAddress: details.purchase_units[0].shipping.address
