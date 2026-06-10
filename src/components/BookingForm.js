@@ -5,6 +5,12 @@ import styles from './BookingForm.module.css';
 import { getPricingCategory, ADDONS, WINDOW_PRICES, getCustomPrice, PRICING_TIERS } from '../utils/pricing';
 import CarWindowSelector from './CarWindowSelector';
 
+const paypalOptions = {
+  clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "test",
+  currency: "USD",
+  intent: "capture"
+};
+
 export default function BookingForm() {
   const [serviceType, setServiceType] = useState('INSTALL'); // 'INSTALL' or 'DIY'
   const [selectedServices, setSelectedServices] = useState(['TINT']); // 'TINT', 'LED'
@@ -200,7 +206,8 @@ export default function BookingForm() {
   const isFormValid = year && make && model && firstName && lastName && phone;
 
   return (
-    <section id="booking" className={styles.section}>
+    <PayPalScriptProvider options={paypalOptions}>
+      <section id="booking" className={styles.section}>
       <div className={styles.container}>
         <h2 className={styles.heading}>Book Your Service</h2>
         
@@ -400,34 +407,32 @@ export default function BookingForm() {
             <div className={styles.submitWrapper}>
               {isFormValid ? (
                 <div className={styles.paypalContainer}>
-                  <PayPalScriptProvider options={{ "client-id": process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "test", currency: "USD", intent: "capture" }}>
-                    <PayPalButtons 
-                      style={{ layout: "vertical" }}
-                      createOrder={(data, actions) => {
-                        return actions.order.create({
-                          purchase_units: [{
-                            amount: {
-                              value: totalPrice.toString()
-                            },
-                            description: `DIY Pre-Cut Tint Kit (${selectedWindows.length} pieces) - ${year} ${make} ${model}`
-                          }]
+                  <PayPalButtons 
+                    style={{ layout: "vertical" }}
+                    createOrder={(data, actions) => {
+                      return actions.order.create({
+                        purchase_units: [{
+                          amount: {
+                            value: totalPrice.toString()
+                          },
+                          description: `DIY Pre-Cut Tint Kit (${selectedWindows.length} pieces) - ${year} ${make} ${model}`
+                        }]
+                      });
+                    }}
+                    onApprove={(data, actions) => {
+                      return actions.order.capture().then((details) => {
+                        submitOrder({
+                          serviceType,
+                          firstName, lastName, phone, email,
+                          year, make, model,
+                          selectedWindows,
+                          totalPrice,
+                          paypalTransactionId: details.id,
+                          shippingAddress: details.purchase_units[0].shipping?.address
                         });
-                      }}
-                      onApprove={(data, actions) => {
-                        return actions.order.capture().then((details) => {
-                          submitOrder({
-                            serviceType,
-                            firstName, lastName, phone, email,
-                            year, make, model,
-                            selectedWindows,
-                            totalPrice,
-                            paypalTransactionId: details.id,
-                            shippingAddress: details.purchase_units[0].shipping?.address
-                          });
-                        });
-                      }}
-                    />
-                  </PayPalScriptProvider>
+                      });
+                    }}
+                  />
                   <p className={styles.paypalNote}>Secure checkout powered by PayPal. We&apos;ll ship your kit within 2 business days.</p>
                 </div>
               ) : (
@@ -438,5 +443,6 @@ export default function BookingForm() {
         </form>
       </div>
     </section>
+    </PayPalScriptProvider>
   );
 }
