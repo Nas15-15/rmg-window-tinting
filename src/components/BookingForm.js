@@ -339,6 +339,31 @@ export default function BookingForm() {
               </div>
             )}
               
+            <div className={styles.formSection}>
+              <h3 className={styles.sectionTitle}>{serviceType === 'INSTALL' ? '4' : '3'}. Contact Info</h3>
+              
+              <div className={styles.row}>
+                <div className={styles.inputGroup}>
+                  <label>First Name</label>
+                  <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)} required className={styles.input} />
+                </div>
+                <div className={styles.inputGroup}>
+                  <label>Last Name</label>
+                  <input type="text" value={lastName} onChange={e => setLastName(e.target.value)} required className={styles.input} />
+                </div>
+              </div>
+              
+              <div className={styles.inputGroup}>
+                <label>Phone Number</label>
+                <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} required placeholder="(555) 555-5555" className={styles.input} />
+              </div>
+              
+              <div className={styles.inputGroup}>
+                <label>Email Address</label>
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Optional" className={styles.input} />
+              </div>
+            </div>
+
             <div className={styles.summaryBox}>
               {selectedServices.includes('TINT') && (
                 <div className={styles.summaryRow}>
@@ -378,67 +403,44 @@ export default function BookingForm() {
                   </div>
                 ) : (
                   <div className={styles.submitWrapper}>
-                    {isFormValid ? (
-                      <div className={styles.paypalContainer}>
-                        <PayPalButtons 
-                          style={{ layout: "vertical" }}
-                          createOrder={(data, actions) => {
-                            return actions.order.create({
-                              purchase_units: [{
-                                amount: {
-                                  value: totalPrice.toString()
-                                },
-                                description: `DIY Pre-Cut Tint Kit (${selectedWindows.length} pieces) - ${year} ${make} ${model}`
-                              }]
-                            });
-                          }}
-                          onApprove={(data, actions) => {
-                            return actions.order.capture().then((details) => {
-                              submitOrder({
-                                serviceType,
-                                firstName, lastName, phone, email,
-                                year, make, model,
-                                selectedWindows,
-                                totalPrice,
-                                paypalTransactionId: details.id,
-                                shippingAddress: details.purchase_units[0].shipping?.address
-                              });
-                            });
-                          }}
-                        />
-                        <p className={styles.paypalNote}>Secure checkout powered by PayPal. We&apos;ll ship your kit within 2 business days.</p>
-                      </div>
-                    ) : (
-                      <p className={styles.disclaimer} style={{ color: 'var(--accent)' }}>Please fill out all required fields to proceed with payment.</p>
+                    {!isFormValid && (
+                      <p className={styles.disclaimer} style={{ color: 'var(--accent)', marginBottom: '1rem' }}>
+                        Please fill out all required fields to proceed with payment.
+                      </p>
                     )}
+                    <div className={styles.paypalContainer}>
+                      <PayPalButtons 
+                        disabled={!isFormValid || totalPrice === 0}
+                        style={{ layout: "vertical" }}
+                        createOrder={(data, actions) => {
+                          return actions.order.create({
+                            purchase_units: [{
+                              amount: {
+                                value: totalPrice.toString()
+                              },
+                              description: `DIY Pre-Cut Tint Kit (${selectedWindows.length} pieces) - ${year} ${make} ${model}`
+                            }]
+                          });
+                        }}
+                        onApprove={(data, actions) => {
+                          return actions.order.capture().then((details) => {
+                            submitOrder({
+                              serviceType,
+                              firstName, lastName, phone, email,
+                              year, make, model,
+                              selectedWindows,
+                              totalPrice,
+                              paypalTransactionId: details.id,
+                              shippingAddress: details.purchase_units[0].shipping?.address
+                            });
+                          });
+                        }}
+                      />
+                      <p className={styles.paypalNote}>Secure checkout powered by PayPal. We&apos;ll ship your kit within 2 business days.</p>
+                    </div>
                   </div>
                 )}
               </div>
-
-            <div className={styles.formSection}>
-              <h3 className={styles.sectionTitle}>{serviceType === 'INSTALL' ? '4' : '3'}. Contact Info</h3>
-              
-              <div className={styles.row}>
-                <div className={styles.inputGroup}>
-                  <label>First Name</label>
-                  <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)} required className={styles.input} />
-                </div>
-                <div className={styles.inputGroup}>
-                  <label>Last Name</label>
-                  <input type="text" value={lastName} onChange={e => setLastName(e.target.value)} required className={styles.input} />
-                </div>
-              </div>
-              
-              <div className={styles.inputGroup}>
-                <label>Phone Number</label>
-                <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} required placeholder="(555) 555-5555" className={styles.input} />
-              </div>
-              
-              <div className={styles.inputGroup}>
-                <label>Email Address</label>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Optional" className={styles.input} />
-              </div>
-            </div>
           </div>
         </form>
       </div>
