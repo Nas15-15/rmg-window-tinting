@@ -219,6 +219,7 @@ export default function BookingForm() {
           
           <div className={styles.modeToggle}>
             <div 
+              id="toggle-install"
               className={`${styles.modeCard} ${serviceType === 'INSTALL' ? styles.modeCardActive : ''}`}
               onClick={() => setServiceType('INSTALL')}
             >
@@ -227,6 +228,7 @@ export default function BookingForm() {
               <div className={styles.modeSubtitle}>Expert installation at our shop</div>
             </div>
             <div 
+              id="toggle-diy"
               className={`${styles.modeCard} ${serviceType === 'DIY' ? styles.modeCardActive : ''}`}
               onClick={() => setServiceType('DIY')}
             >
@@ -241,8 +243,9 @@ export default function BookingForm() {
               <h3 className={styles.sectionTitle}>1. Vehicle Details</h3>
 
               <div className={styles.inputGroup}>
-                <label>Year</label>
+                <label htmlFor="vehicle-year">Year</label>
                 <input 
+                  id="vehicle-year"
                   type="number" 
                   min="1990" 
                   max={new Date().getFullYear() + 1} 
@@ -255,8 +258,9 @@ export default function BookingForm() {
               </div>
 
               <div className={styles.inputGroup}>
-                <label>Make</label>
+                <label htmlFor="vehicle-make">Make</label>
                 <select 
+                  id="vehicle-make"
                   value={make} 
                   onChange={(e) => handleMakeChange(e.target.value)}
                   disabled={makes.length === 0 || loadingMakes}
@@ -271,8 +275,9 @@ export default function BookingForm() {
               </div>
 
               <div className={styles.inputGroup}>
-                <label>Model</label>
+                <label htmlFor="vehicle-model">Model</label>
                 <select 
+                  id="vehicle-model"
                   value={model} 
                   onChange={(e) => handleModelChange(e.target.value)}
                   disabled={!year || !make || loadingModels}
@@ -292,8 +297,9 @@ export default function BookingForm() {
 
               {model && (
                 <div className={styles.inputGroup}>
-                  <label>Body Style (Optional override)</label>
+                  <label htmlFor="vehicle-body-style">Body Style (Optional override)</label>
                   <select 
+                    id="vehicle-body-style"
                     value={bodyStyleOverride} 
                     onChange={(e) => setBodyStyleOverride(e.target.value)}
                     className={styles.input}
@@ -348,23 +354,23 @@ export default function BookingForm() {
               
               <div className={styles.row}>
                 <div className={styles.inputGroup}>
-                  <label>First Name</label>
-                  <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)} required className={styles.input} />
+                  <label htmlFor="customer-first-name">First Name</label>
+                  <input id="customer-first-name" type="text" value={firstName} onChange={e => setFirstName(e.target.value)} required className={styles.input} />
                 </div>
                 <div className={styles.inputGroup}>
-                  <label>Last Name</label>
-                  <input type="text" value={lastName} onChange={e => setLastName(e.target.value)} required className={styles.input} />
+                  <label htmlFor="customer-last-name">Last Name</label>
+                  <input id="customer-last-name" type="text" value={lastName} onChange={e => setLastName(e.target.value)} required className={styles.input} />
                 </div>
               </div>
               
               <div className={styles.inputGroup}>
-                <label>Phone Number</label>
-                <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} required placeholder="(555) 555-5555" className={styles.input} />
+                <label htmlFor="customer-phone">Phone Number</label>
+                <input id="customer-phone" type="tel" value={phone} onChange={e => setPhone(e.target.value)} required placeholder="(555) 555-5555" className={styles.input} />
               </div>
               
               <div className={styles.inputGroup}>
-                <label>Email Address</label>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Optional" className={styles.input} />
+                <label htmlFor="customer-email">Email Address</label>
+                <input id="customer-email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Optional" className={styles.input} />
               </div>
             </div>
 
@@ -389,7 +395,7 @@ export default function BookingForm() {
                 )}
                 <div className={styles.summaryTotal}>
                   <span>Estimated Total:</span>
-                  <span className={styles.totalPrice}>${totalPrice}</span>
+                  <span id="booking-total-price" className={styles.totalPrice}>${totalPrice}</span>
                 </div>
 
                 {status === 'error' && <div className={styles.errorAlert}>{errorMessage}</div>}

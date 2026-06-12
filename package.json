@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@paypal/react-paypal-js": "^10.0.0",
@@ -16,6 +17,7 @@
     "resend": "^6.12.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.7",
     "typescript": "^6.0.3"
