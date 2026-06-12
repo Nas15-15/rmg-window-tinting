@@ -411,7 +411,7 @@ export default function BookingForm() {
                     <div className={styles.paypalContainer}>
                       <PayPalButtons 
                         disabled={!isFormValid || totalPrice === 0}
-                        style={{ layout: "vertical" }}
+                        style={{ layout: "vertical", color: "blue" }}
                         createOrder={(data, actions) => {
                           return actions.order.create({
                             purchase_units: [{
