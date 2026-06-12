@@ -120,7 +120,8 @@ export async function POST(request) {
 
       if (data.error) {
         console.error("Resend error:", data.error);
-        return NextResponse.json({ error: 'Failed to dispatch email notification' }, { status: 500 });
+        const detailedMessage = data.error.message || JSON.stringify(data.error);
+        return NextResponse.json({ error: `Failed to dispatch email notification: ${detailedMessage}` }, { status: 500 });
       }
     } else {
       console.log("Mock email sent. Payload:", body);
