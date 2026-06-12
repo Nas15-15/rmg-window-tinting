@@ -32,6 +32,8 @@ export const WINDOW_PRICES = {
   FRONT_RIGHT: { label: 'Front Passenger Side', base: 45, sedan: 45, suv: 50, xl: 60 },
   REAR_LEFT: { label: 'Rear Driver Side', base: 45, sedan: 45, suv: 50, xl: 60 },
   REAR_RIGHT: { label: 'Rear Passenger Side', base: 45, sedan: 45, suv: 50, xl: 60 },
+  CARGO_LEFT: { label: 'Cargo Driver Side', base: 45, sedan: 45, suv: 50, xl: 60 },
+  CARGO_RIGHT: { label: 'Cargo Passenger Side', base: 45, sedan: 45, suv: 50, xl: 60 },
   REAR_WINDSHIELD: { label: 'Rear Windshield', base: 70, sedan: 70, suv: 80, xl: 80 },
 };
 

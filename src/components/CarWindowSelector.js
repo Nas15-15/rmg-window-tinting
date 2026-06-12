@@ -90,16 +90,16 @@ export default function CarWindowSelector({
 
           {isSUV && (
             <>
-              {/* For SUVs, clicking rear windows toggles cargo as well, or they are just separate clickable sections that map to the same REAR_RIGHT id */}
+              {/* For SUVs, clicking cargo windows toggles cargo individually */}
               <path 
-                className={`${styles.window} ${isSelected('REAR_RIGHT') ? styles.selected : ''}`}
+                className={`${styles.window} ${isSelected('CARGO_RIGHT') ? styles.selected : ''}`}
                 d={p.CARGO_RIGHT}
-                onClick={() => onToggleWindow('REAR_RIGHT')}
+                onClick={() => onToggleWindow('CARGO_RIGHT')}
               />
               <path 
-                className={`${styles.window} ${isSelected('REAR_LEFT') ? styles.selected : ''}`}
+                className={`${styles.window} ${isSelected('CARGO_LEFT') ? styles.selected : ''}`}
                 d={p.CARGO_LEFT}
-                onClick={() => onToggleWindow('REAR_LEFT')}
+                onClick={() => onToggleWindow('CARGO_LEFT')}
               />
             </>
           )}

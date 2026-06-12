@@ -120,7 +120,11 @@ export default function BookingForm() {
   };
 
   const handleSelectAll = () => {
-    setSelectedWindows(['WINDSHIELD', 'SUN_STRIP', 'FRONT_LEFT', 'FRONT_RIGHT', 'REAR_LEFT', 'REAR_RIGHT', 'REAR_WINDSHIELD']);
+    const allWindows = ['WINDSHIELD', 'SUN_STRIP', 'FRONT_LEFT', 'FRONT_RIGHT', 'REAR_LEFT', 'REAR_RIGHT', 'REAR_WINDSHIELD'];
+    if (pricingCategory.label === "Small SUV / Crossover" || pricingCategory.label === "Truck / Large SUV") {
+      allWindows.push('CARGO_LEFT', 'CARGO_RIGHT');
+    }
+    setSelectedWindows(allWindows);
   };
 
   const handleClearSelection = () => {
@@ -436,7 +440,7 @@ export default function BookingForm() {
                           });
                         }}
                       />
-                      <p className={styles.paypalNote}>Secure checkout powered by PayPal. We&apos;ll ship your kit within 2 business days.</p>
+                      <p className={styles.paypalNote}>Secure checkout powered by PayPal. We will ship your kit.</p>
                     </div>
                   </div>
                 )}
