@@ -6,7 +6,7 @@ export default function Hero() {
     <section className={styles.hero}>
       <div className={styles.backgroundContainer}>
         <Image 
-          src="/hero-bg.jpg" 
+          src="/hero-image.jpg" 
           alt="Premium Window Tinting Result" 
           fill
           priority
