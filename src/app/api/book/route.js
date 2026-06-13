@@ -12,6 +12,18 @@ const isValidPhone = (phone) => {
   return digits.length >= 10;
 };
 
+const WINDOW_LABELS = {
+  WINDSHIELD: 'Full Windshield',
+  SUN_STRIP: 'Sun Strip',
+  FRONT_LEFT: 'Front Driver Side (Left)',
+  FRONT_RIGHT: 'Front Passenger Side (Right)',
+  REAR_LEFT: 'Rear Driver Side (Left)',
+  REAR_RIGHT: 'Rear Passenger Side (Right)',
+  CARGO_LEFT: 'Cargo Driver Side (Left)',
+  CARGO_RIGHT: 'Cargo Passenger Side (Right)',
+  REAR_WINDSHIELD: 'Rear Windshield',
+};
+
 export async function POST(request) {
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
@@ -21,7 +33,7 @@ export async function POST(request) {
       serviceType, 
       firstName, lastName, phone, email, 
       year, make, model, 
-      selectedServices, addons, windowCount, 
+      selectedServices, addons, selectedWindows, 
       totalPrice,
       paypalTransactionId, shippingAddress 
     } = body;
@@ -55,6 +67,11 @@ export async function POST(request) {
     let htmlContent = '';
     let emailSubject = '';
 
+    const windowCount = selectedWindows ? selectedWindows.length : 0;
+    const windowsList = selectedWindows && selectedWindows.length > 0
+      ? selectedWindows.map(w => WINDOW_LABELS[w] || w).join(', ')
+      : 'None selected';
+
     if (serviceType === 'DIY') {
       emailSubject = `New DIY Kit Order (PAID): ${year} ${make} ${model} - ${firstName} ${lastName}`;
       
@@ -82,7 +99,8 @@ export async function POST(request) {
         <hr />
         <h3>Order Details</h3>
         <p><strong>Vehicle:</strong> ${year} ${make} ${model}</p>
-        <p><strong>Items:</strong> ${windowCount} Windows Custom Cut</p>
+        <p><strong>Windows Count:</strong> ${windowCount}</p>
+        <p><strong>Selected Windows:</strong> ${windowsList}</p>
         <p><strong>Total Paid:</strong> $${totalPrice}</p>
         <br>
         <p><em>Note: You can print the shipping label directly from your PayPal dashboard using the transaction ID above.</em></p>
@@ -90,8 +108,12 @@ export async function POST(request) {
     } else {
       emailSubject = `New In-Shop Booking: ${year} ${make} ${model} - ${firstName} ${lastName}`;
       const servicesText = selectedServices && selectedServices.length > 0 
-        ? selectedServices.map(s => s === 'WINDOW_TINT' ? 'Window Tint' : s === 'LED_HEADLIGHTS' ? 'LED Headlights' : s).join(', ') 
-        : 'Window Tint';
+        ? selectedServices.map(s => {
+            if (s === 'TINT' || s === 'WINDOW_TINT') return 'Window Tinting';
+            if (s === 'LED' || s === 'LED_HEADLIGHTS') return 'LED Headlights';
+            return s;
+          }).join(', ') 
+        : 'Window Tinting';
       
       htmlContent = `
         <h2>New In-Shop Window Tinting Booking</h2>
@@ -105,6 +127,10 @@ export async function POST(request) {
         <h3>Vehicle Details</h3>
         <p><strong>Vehicle:</strong> ${year} ${make} ${model}</p>
         <p><strong>Services Needed:</strong> ${servicesText}</p>
+        ${(selectedServices && (selectedServices.includes('TINT') || selectedServices.includes('WINDOW_TINT'))) ? `
+          <p><strong>Windows Count:</strong> ${windowCount}</p>
+          <p><strong>Selected Windows:</strong> ${windowsList}</p>
+        ` : ''}
         <p><strong>Estimated Total:</strong> $${totalPrice}</p>
       `;
     }
